@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contractor App Review Analysis - Jobber vs ProBuild vs Joist</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.95;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .app-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .app-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .stat-value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .rating {
+            font-size: 1.5rem;
+            color: #f39c12;
+        }
+
+        .section {
+            padding: 40px;
+        }
+
+        h2 {
+            font-size: 2rem;
+            margin-bottom: 25px;
+            color: #333;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .issues-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .issue-card {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .issue-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .issue-percentage {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .issue-description {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            margin-top: 30px;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 400px;
+            margin-top: 20px;
+        }
+
+        .reviews-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .reviews-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .reviews-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .reviews-table td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .reviews-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .review-text {
+            max-width: 500px;
+            line-height: 1.5;
+            color: #555;
+        }
+
+        .rating-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .rating-1 { background: #ff4757; color: white; }
+        .rating-2 { background: #ff7675; color: white; }
+        .rating-3 { background: #fdcb6e; color: #333; }
+
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .insight-box {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .insight-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .insight-icon {
+            font-size: 1.5rem;
+        }
+
+        .insight-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .insight-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            color: #555;
+        }
+
+        .insight-list li:last-child {
+            border-bottom: none;
+        }
+
+        .feature-comparison {
+            overflow-x: auto;
+            margin-top: 30px;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .comparison-table thead {
+            background: #f8f9fa;
+        }
+
+        .comparison-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .comparison-table td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .comparison-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .percentage-bar {
+            background: #e0e0e0;
+            height: 25px;
+            border-radius: 5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .percentage-fill {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            height: 100%;
+            display: flex;
+            align-items: center;
+            padding-left: 10px;
+            color: white;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        footer {
+            background: #333;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .timestamp {
+            opacity: 0.8;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            h2 { font-size: 1.5rem; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .insights-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Contractor App Review Analysis</h1>
+            <p class="subtitle">Comparative Analysis of Jobber, ProBuild, and Joist</p>
+            <p class="subtitle" style="margin-top: 10px; font-size: 1rem; opacity: 0.9;">Based on 6,632 Google Play Store Reviews</p>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="app-name">Jobber</div>
+                <div class="app-stats">
+                    <div class="stat-row">
+                        <span class="stat-label">Total Reviews</span>
+                        <span class="stat-value">1,176</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Average Rating</span>
+                        <span class="stat-value rating">3.54 ⭐</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">1-Star Reviews</span>
+                        <span class="stat-value" style="color: #e74c3c;">24.7%</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">5-Star Reviews</span>
+                        <span class="stat-value" style="color: #27ae60;">51.0%</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Response Rate</span>
+                        <span class="stat-value">91.4%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="app-name">ProBuild</div>
+                <div class="app-stats">
+                    <div class="stat-row">
+                        <span class="stat-label">Total Reviews</span>
+                        <span class="stat-value">131</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Average Rating</span>
+                        <span class="stat-value rating">4.34 ⭐</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">1-Star Reviews</span>
+                        <span class="stat-value" style="color: #e74c3c;">6.1%</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">5-Star Reviews</span>
+                        <span class="stat-value" style="color: #27ae60;">62.6%</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Response Rate</span>
+                        <span class="stat-value">68.7%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="app-name">Joist</div>
+                <div class="app-stats">
+                    <div class="stat-row">
+                        <span class="stat-label">Total Reviews</span>
+                        <span class="stat-value">5,325</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Average Rating</span>
+                        <span class="stat-value rating">4.13 ⭐</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">1-Star Reviews</span>
+                        <span class="stat-value" style="color: #e74c3c;">14.5%</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">5-Star Reviews</span>
+                        <span class="stat-value" style="color: #27ae60;">67.4%</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Response Rate</span>
+                        <span class="stat-value">58.6%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="section">
+            <h2>📊 Rating Distribution Comparison</h2>
+            <div class="chart-container">
+                <div class="chart-wrapper">
+                    <canvas id="ratingChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🔴 Top Issues Across All Apps</h2>
+            <p style="color: #666; margin-bottom: 20px;">Based on analysis of 1,689 negative reviews (1-3 stars)</p>
+            <div class="issues-container">
+                <div class="issue-card">
+                    <div class="issue-title">Mobile App Problems</div>
+                    <div class="issue-percentage">61.9%</div>
+                    <div class="issue-description">Crashes, freezes, slow performance, UI issues</div>
+                </div>
+                <div class="issue-card">
+                    <div class="issue-title">Invoicing Issues</div>
+                    <div class="issue-percentage">29.8%</div>
+                    <div class="issue-description">Complex workflow, missing features, delivery problems</div>
+                </div>
+                <div class="issue-card">
+                    <div class="issue-title">Pricing Concerns</div>
+                    <div class="issue-percentage">23.4%</div>
+                    <div class="issue-description">High costs, frequent increases, feature paywalling</div>
+                </div>
+                <div class="issue-card">
+                    <div class="issue-title">Bugs & Glitches</div>
+                    <div class="issue-percentage">14.9%</div>
+                    <div class="issue-description">Broken features, data loss, sync errors</div>
+                </div>
+                <div class="issue-card">
+                    <div class="issue-title">Update Problems</div>
+                    <div class="issue-percentage">13.3%</div>
+                    <div class="issue-description">Features removed, breaking changes, forced updates</div>
+                </div>
+                <div class="issue-card">
+                    <div class="issue-title">Customer Support</div>
+                    <div class="issue-percentage">13.2%</div>
+                    <div class="issue-description">Poor response time, unhelpful support, AI-only chat</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>💡 Key Insights & Opportunities</h2>
+            <div class="insights-grid">
+                <div class="insight-box">
+                    <div class="insight-title">
+                        <span class="insight-icon">🎯</span>
+                        Feature Gaps Identified
+                    </div>
+                    <ul class="insight-list">
+                        <li><strong>Multi-user/Team Management:</strong> High demand in Jobber (7.6%)</li>
+                        <li><strong>Estimates/Quotes:</strong> Strong need in Joist (15.5%) and ProBuild (10.7%)</li>
+                        <li><strong>Digital Signatures:</strong> Consistent demand (2-4% across all apps)</li>
+                        <li><strong>Photo Attachments:</strong> Moderate demand (2-4%)</li>
+                        <li><strong>Offline Mode:</strong> Critical gap for field work (1-3%)</li>
+                        <li><strong>Time Tracking:</strong> Underserved need (1-2%)</li>
+                    </ul>
+                </div>
+
+                <div class="insight-box">
+                    <div class="insight-title">
+                        <span class="insight-icon">⚠️</span>
+                        Common User Frustrations
+                    </div>
+                    <ul class="insight-list">
+                        <li><strong>Jobber:</strong> Aggressive marketing notifications, difficult client management</li>
+                        <li><strong>Joist:</strong> Constant price increases, features moved to higher tiers</li>
+                        <li><strong>ProBuild:</strong> Phone verification requirement, limited Android features</li>
+                        <li><strong>All Apps:</strong> Mobile app instability is the #1 complaint</li>
+                        <li><strong>Support:</strong> Joist's AI-only support vs Jobber's 91% response rate</li>
+                    </ul>
+                </div>
+
+                <div class="insight-box">
+                    <div class="insight-title">
+                        <span class="insight-icon">📈</span>
+                        Business Strategy Insights
+                    </div>
+                    <ul class="insight-list">
+                        <li><strong>Pricing:</strong> Users very sensitive to increases & feature paywalling</li>
+                        <li><strong>Mobile First:</strong> Must be rock solid - it's the #1 pain point</li>
+                        <li><strong>Customer Support:</strong> High response rate is a key differentiator</li>
+                        <li><strong>Feature Creep:</strong> Moving free features to paid tiers causes backlash</li>
+                        <li><strong>Integration:</strong> QuickBooks, Square, Stripe integrations are expected</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>📱 Feature Demand Comparison</h2>
+            <p style="color: #666; margin-bottom: 20px;">Percentage of reviews mentioning each feature</p>
+            <div class="feature-comparison">
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>Jobber</th>
+                            <th>ProBuild</th>
+                            <th>Joist</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Estimates/Quotes</strong></td>
+                            <td>
+                                <div class="percentage-bar">
+                                    <div class="percentage-fill" style="width: 39%;">3.9%</div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="percentage-bar">
+                                    <div class="percentage-fill" style="width: 100%;">10.7%</div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="percentage-bar">
+                                    <div class="percentage-fill" style="width: 100%;">15.5%</div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Multi-user/Team</strong></td>
+                            <td>
+                                <div class="percentage-bar">
+                                    <div class="percentage-fill" style="width: 100%;">7.6%</div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="percentage-bar">
+                                    <div class="percentage-fill" style="width: 80%;">6.1%</div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="percentage-bar">
+                                    <div class="percentage-fill" style="width: 26%;">2.0%</div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Digital Signatures</strong></td>
+                            <td>
+                                <div class="percentage-bar">
+                                    <div class="percentage-fill" style="width: 100%;">3.7%</div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="percentage-bar">
+                                    <div class="percentage-fill" style="width: 62%;">2.3%</div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="percentage-bar">
+                                    <div class="percentage-fill" style="width: 84%;">3.1%</div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Photo Attachments</strong></td>
+                            <td>
+                                <div class="percentage-bar">
+                                    <div class="percentage-fill" style="width: 67%;">3.1%</div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="percentage-bar">
+                                    <div class="percentage-fill" style="width: 100%;">4.6%</div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="percentage-bar">
+                                    <div class="percentage-fill" style="width: 50%;">2.3%</div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Time Tracking</strong></td>
+                            <td>
+                                <div class="percentage-bar">
+                                    <div class="percentage-fill" style="width: 83%;">1.9%</div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="percentage-bar">
+                                    <div class="percentage-fill" style="width: 100%;">2.3%</div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="percentage-bar">
+                                    <div class="percentage-fill" style="width: 4%;">0.1%</div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Offline Mode</strong></td>
+                            <td>
+                                <div class="percentage-bar">
+                                    <div class="percentage-fill" style="width: 100%;">1.3%</div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="percentage-bar">
+                                    <div class="percentage-fill" style="width: 0%;">0%</div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="percentage-bar">
+                                    <div class="percentage-fill" style="width: 23%;">0.3%</div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>📝 Sample Recent Negative Reviews</h2>
+            <p style="color: #666; margin-bottom: 20px;">Most recent critical reviews highlighting key pain points</p>
+            <table class="reviews-table">
+                <thead>
+                    <tr>
+                        <th>App</th>
+                        <th>Rating</th>
+                        <th>Date</th>
+                        <th>Review Excerpt</th>
+                    </tr>
+                </thead>
+                <tbody id="reviewsTableBody">
+                </tbody>
+            </table>
+        </section>
+
+        <footer>
+            <p>Contractor App Review Analysis</p>
+            <p class="timestamp">Data collected and analyzed on September 17, 2025</p>
+            <p class="timestamp">Source: Google Play Store Reviews</p>
+        </footer>
+    </div>
+
+    <script>
+        // Rating Distribution Chart
+        const ctx = document.getElementById('ratingChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['1 Star', '2 Stars', '3 Stars', '4 Stars', '5 Stars'],
+                datasets: [
+                    {
+                        label: 'Jobber',
+                        data: [290, 87, 98, 101, 600],
+                        backgroundColor: 'rgba(102, 126, 234, 0.7)',
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'ProBuild',
+                        data: [8, 1, 11, 29, 82],
+                        backgroundColor: 'rgba(118, 75, 162, 0.7)',
+                        borderColor: 'rgba(118, 75, 162, 1)',
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Joist',
+                        data: [770, 183, 241, 542, 3589],
+                        backgroundColor: 'rgba(237, 100, 166, 0.7)',
+                        borderColor: 'rgba(237, 100, 166, 1)',
+                        borderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Reviews'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    title: {
+                        display: false
+                    }
+                }
+            }
+        });
+
+        // Sample negative reviews data
+        const sampleReviews = [
+            {
+                app: 'Jobber',
+                rating: 2,
+                date: '2025-09-10',
+                text: 'DESPITE WHAT THE DEVELOPER SAYS, they will not stop with the nagging notifications. Advertisement for a raffle run by Jobber themselves...'
+            },
+            {
+                app: 'Jobber',
+                rating: 1,
+                date: '2025-09-04',
+                text: 'NOT WORTH THE MONEY! After paying $450 a month, we discover they dont send the invoice but a link to their hub for collection fees...'
+            },
+            {
+                app: 'Joist',
+                rating: 1,
+                date: '2025-09-05',
+                text: 'App used to be good. Now they keep taking away things, putting them in higher priced tiers. Prices go up every 2-3 months...'
+            },
+            {
+                app: 'Joist',
+                rating: 1,
+                date: '2025-09-03',
+                text: 'Have to resend estimates regularly. No customer support besides an AI bot. Maybe they\'ll use this price increase to debug their software...'
+            },
+            {
+                app: 'ProBuild',
+                rating: 1,
+                date: '2025-07-06',
+                text: 'I\'m tired of apps needing my information before I know if they are worth anything...'
+            },
+            {
+                app: 'ProBuild',
+                rating: 1,
+                date: '2023-10-31',
+                text: 'Used it for months and had issues. Most importantly, my invoices keep ending up in my clients SPAM folder...'
+            }
+        ];
+
+        // Populate reviews table
+        const tbody = document.getElementById('reviewsTableBody');
+        sampleReviews.forEach(review => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><strong>${review.app}</strong></td>
+                <td><span class="rating-badge rating-${review.rating}">${review.rating}★</span></td>
+                <td>${review.date}</td>
+                <td class="review-text">${review.text}</td>
+            `;
+            tbody.appendChild(row);
+        });
+    </script>
+</body>
+</html>
